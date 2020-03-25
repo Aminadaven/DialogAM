@@ -1,0 +1,176 @@
+	void save(String str) {
+		//java.util.zip.ZipFile.
+		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(player.name + ".cam"), charset)) {
+			String s = player(str);
+			writer.write(s, 0, s.length());
+			System.out.println("\nFile is written");
+		} catch (IOException x) {
+			System.err.format("IOException: %s%n\nWrite Error", x);
+		}
+	}
+
+	private static void load(String string) {
+		/*
+		 * } player = new Player(getKey(string, "core", " "), string, string,
+		 * string, string, null, null, 0, 0, 0, 0, false, null); try
+		 * (BufferedReader reader = Files.newBufferedReader(Paths.get(string +
+		 * ".cam"), charset)) { String line = null; keyChain kc = new
+		 * keyChain(); while ((line = reader.readLine()) != null) {
+		 * 
+		 * } } catch (IOException x) { System.err.format(
+		 * "IOException: %s%n\nRead Error", x); }
+		 */
+
+	}
+
+	String getKey(String file, String key, String spliters) {
+		try {
+			BufferedReader reader = Files.newBufferedReader(Paths.get(file + ".cam"), charset);
+			String line = null;
+			String[] bl;
+			// = new String[2];
+			// String[] obj;
+			while ((line = reader.readLine()) != null) {
+				bl = line.split(spliters);
+				if (bl[0].equals(key))
+					return bl[1];
+			}
+			return "";
+		} catch (IOException x) {
+			System.err.format("IOException: %s%n\nRead Error", x);
+			return "";
+		}
+	}
+
+	Attack[] getAttacks(String file) {
+		try (BufferedReader reader = Files.newBufferedReader(Paths.get(file + ".cam"), charset)) {
+			String line = null;
+
+			// keyChain kc1 = new keyChain(2), kc2 = new keyChain(2);
+			Attack[] attacks = new Attack[4];
+			String[] bl;
+			String[] data;
+			String[] vals;
+			while ((line = reader.readLine()) != null) {
+				bl = line.split(" ");
+				data = bl[0].split(".");
+				vals = bl[0].split(".");
+				if (data[0].equals("attacks")) {
+					switch (vals[0]) {
+					case "Bubble":
+						attacks[Integer.parseInt(data[1])] = Vault.BUBBLE;
+						attacks[Integer.parseInt(data[1])].actualPp = Integer.parseInt(vals[1]);
+						break;
+					}
+				}
+			}
+			return attacks;
+		} catch (IOException x) {
+			System.err.format("IOException: %s%n\nRead Error", x);
+			return null;
+		}
+
+	}
+
+	int[] getKeys(String file, String key, String... spliters) {
+		if (spliters.length == 1)
+			return new int[] { Integer.parseInt(getKey(file, key, spliters[0])) };
+
+		try (BufferedReader reader = Files.newBufferedReader(Paths.get(file + ".cam"), charset)) {
+			String line = null;
+			keyChain vals = new keyChain(6);
+
+			String[] bl;
+			String[] obj;
+			while ((line = reader.readLine()) != null) {
+				bl = line.split(spliters[0]);
+				obj = bl[0].split(spliters[1]);
+				if (obj[0].equals(key)) {
+					vals.addKey(Integer.parseInt(obj[1]), bl[1]);
+				}
+			}
+			return vals.getAllKeys();
+		} catch (IOException x) {
+			System.err.format("IOException: %s%n\nRead Error", x);
+			return null;
+		}
+	}
+
+	String player(String method) {
+		String str = "";
+		str += "Method " + method + "\n" + "core " + player.core.spec + "\n" + "name " + player.name + "\n" + "status "
+				+ player.status + "\n" + "nature " + player.nature + "\n" + "ability " + player.ability + "\n"
+				+ "level " + player.lvl + "\n" + "ahp " + player.actualHp + "\n" + "xp " + player.xp + "\n" + "side "
+				+ player.side + "\n" + "berry " + player.berry + "\n";
+		for (int i = 0; i < player.ev.length; i++) {
+			str += "ev." + (i) + " " + player.ev[i] + "\n";
+		}
+		for (int i = 0; i < player.iv.length; i++) {
+			str += "iv." + (i) + " " + player.iv[i] + "\n";
+		}
+		for (int i = 0; i < player.attacks.getSize(); i++) {
+			str += "attacks." + (i) + " " + player.name + "." + player.attacks.get(i);
+			str += "attacks." + (i) + " " + player.attacks.get(i).name + "." + player.attacks.get(i).actualPp + "\n";
+			// str +="attacks." + (i) + "app " + player.attacks[i].actualPp +
+			// "\n";
+		}
+
+		return str;
+	}
+}
+
+class keyChain {
+	private int[] chain;
+
+	public keyChain(int length) {
+		chain = new int[length];
+	}
+
+	void addKey(int key, String val) {
+		chain[key] = Integer.parseInt(val);
+	}
+
+	boolean isEmpty() {
+		return chain.length < 1;
+	}
+
+	int getKey(int key) {
+		return chain[key];
+	}
+
+	int[] getAllKeys() {
+		return chain;
+	}
+}
+
+class KeyTree {
+	private KeyTree[] next;
+	private String val;
+
+	public KeyTree() {
+		// next = new Key[10];
+	}
+	// }
+
+	void addVal(String val, int... address) {
+		KeyTree n = this;
+		for (int i = 0; i < address.length; i++) {
+			if (n.next == null) {
+				n.next = new KeyTree[address[i] + 1];
+				for (int j = 0; j < n.next.length; j++) {
+					n.next[j] = new KeyTree();
+				}
+			}
+			n = n.next[address[i]];
+		}
+		n.val = val;
+	}
+
+	String getVal(int... address) {
+		KeyTree n = this;
+		for (int i = 0; i < address.length; i++) {
+			n = n.next[address[i]];
+		}
+		return n.val;
+	}
+}
